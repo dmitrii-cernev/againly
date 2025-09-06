@@ -147,13 +147,26 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
             Expanded(
               child: _items.isEmpty
                   ? _buildEmptyItemsState(context)
-                  : ListView.builder(
+                  : ReorderableListView.builder(
                       itemCount: _items.length,
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          if (newIndex > oldIndex) {
+                            newIndex -= 1;
+                          }
+                          final item = _items.removeAt(oldIndex);
+                          _items.insert(newIndex, item);
+                        });
+                      },
                       itemBuilder: (context, index) {
                         return Card(
+                          key: ValueKey(_items[index]),
                           margin: const EdgeInsets.symmetric(vertical: 2),
                           child: ListTile(
-                            leading: const Icon(Icons.drag_handle),
+                            leading: ReorderableDragStartListener(
+                              index: index,
+                              child: const Icon(Icons.drag_handle),
+                            ),
                             title: Text(_items[index]),
                             trailing: IconButton(
                               icon: const Icon(Icons.close),

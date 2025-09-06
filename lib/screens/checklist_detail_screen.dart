@@ -194,14 +194,23 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
           Expanded(
             child: currentChecklist.items.isEmpty
                 ? _buildEmptyState(context)
-                : ListView.builder(
+                : ReorderableListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: currentChecklist.items.length,
+                    onReorder: (oldIndex, newIndex) {
+                      ref.read(checklistProvider.notifier).reorderChecklistItems(
+                        widget.checklist.id,
+                        oldIndex,
+                        newIndex,
+                      );
+                    },
                     itemBuilder: (context, index) {
                       final item = currentChecklist.items[index];
                       return ChecklistItemTile(
+                        key: ValueKey(item.id),
                         item: item,
                         checklistId: widget.checklist.id,
+                        showDragHandle: true,
                       );
                     },
                   ),

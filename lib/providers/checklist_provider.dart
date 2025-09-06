@@ -107,6 +107,35 @@ class ChecklistNotifier extends StateNotifier<AsyncValue<List<Checklist>>> {
     await updateChecklist(updatedChecklist);
   }
 
+  Future<void> reorderChecklistItems(String checklistId, int oldIndex, int newIndex) async {
+    final checklist = StorageService.getChecklistById(checklistId);
+    if (checklist == null) return;
+    
+    final items = List<ChecklistItem>.from(checklist.items);
+    
+    // Adjust newIndex if moving item down the list
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    
+    // Get the item being moved
+    final item = items[oldIndex];
+    final targetItem = items[newIndex];
+    
+    // Only allow reordering within the same completion status group
+    // This preserves the auto-sorting behavior where completed items stay at bottom
+    if (item.isCompleted != targetItem.isCompleted) {
+      return; // Don't allow moving completed items above uncompleted ones or vice versa
+    }
+    
+    // Move the item
+    final movedItem = items.removeAt(oldIndex);
+    items.insert(newIndex, movedItem);
+    
+    final updatedChecklist = checklist.copyWith(items: items);
+    await updateChecklist(updatedChecklist);
+  }
+
   Future<void> deleteMultipleChecklists(List<String> checklistIds) async {
     try {
       for (final id in checklistIds) {

@@ -6,11 +6,13 @@ import '../providers/checklist_provider.dart';
 class ChecklistItemTile extends ConsumerStatefulWidget {
   final ChecklistItem item;
   final String checklistId;
+  final bool showDragHandle;
   
   const ChecklistItemTile({
     super.key,
     required this.item,
     required this.checklistId,
+    this.showDragHandle = false,
   });
   
   @override
@@ -53,45 +55,54 @@ class _ChecklistItemTileState extends ConsumerState<ChecklistItemTile> {
           },
         ),
         title: _isEditing ? _buildEditingField() : _buildDisplayText(theme),
-        trailing: PopupMenuButton<String>(
-          icon: Icon(
-            Icons.more_vert,
-            color: colorScheme.onSurfaceVariant,
-            size: 20,
-          ),
-          onSelected: (value) {
-            switch (value) {
-              case 'edit':
-                _startEditing();
-                break;
-              case 'delete':
-                _deleteItem();
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit, size: 16),
-                  SizedBox(width: 8),
-                  Text('Edit'),
+        trailing: widget.showDragHandle 
+            ? ReorderableDragStartListener(
+                index: 0, // This will be overridden by the parent ReorderableListView
+                child: Icon(
+                  Icons.drag_handle,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
+              )
+            : PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      _startEditing();
+                      break;
+                    case 'delete':
+                      _deleteItem();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 16),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, size: 16),
+                        SizedBox(width: 8),
+                        Text('Delete'),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, size: 16),
-                  SizedBox(width: 8),
-                  Text('Delete'),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
