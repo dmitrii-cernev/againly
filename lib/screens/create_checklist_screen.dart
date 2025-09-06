@@ -31,16 +31,16 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('New Checklist'),
-        actions: [
-          TextButton(
-            onPressed: _canCreate() ? _createChecklist : null,
-            child: const Text('Create'),
-          ),
-        ],
-      ),
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop && _canCreate()) {
+          _createChecklist();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('New Checklist'),
+        ),
 
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -163,6 +163,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -247,7 +248,6 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
     );
 
     ref.read(checklistProvider.notifier).createChecklist(checklist);
-    Navigator.of(context).pop();
   }
 }
 
