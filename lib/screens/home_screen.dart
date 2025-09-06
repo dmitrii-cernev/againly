@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../models/checklist.dart';
 import '../providers/checklist_provider.dart';
+import '../providers/selection_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/checklist_card.dart';
 import 'create_checklist_screen.dart';
@@ -14,22 +15,52 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final checklistState = ref.watch(checklistProvider);
+    final selectionState = ref.watch(selectionProvider);
     final themeNotifier = ref.read(themeProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: Icon(themeNotifier.currentThemeIcon),
-            tooltip: themeNotifier.currentThemeTooltip,
-            onPressed: () => themeNotifier.toggleTheme(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () =>
-                ref.read(checklistProvider.notifier).refreshChecklists(),
-          ),
-        ],
+        leading: selectionState.isSelectionMode ? Container() : null,
+        leadingWidth: selectionState.isSelectionMode ? 120 : null,
+        title: selectionState.isSelectionMode 
+            ? LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 300;
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildSelectionActions(context, ref, isCompact: isNarrow),
+                      SizedBox(width: isNarrow ? 8 : 16),
+                      Flexible(
+                        child: Text(
+                          '${selectionState.selectedCount} selected',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              )
+            : null,
+        actions: selectionState.isSelectionMode 
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => ref.read(selectionProvider.notifier).exitSelectionMode(),
+                ),
+              ]
+            : [
+                IconButton(
+                  icon: Icon(themeNotifier.currentThemeIcon),
+                  tooltip: themeNotifier.currentThemeTooltip,
+                  onPressed: () => themeNotifier.toggleTheme(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () =>
+                      ref.read(checklistProvider.notifier).refreshChecklists(),
+                ),
+              ],
       ),
       body: checklistState.when(
         data: (checklists) => _buildChecklistGrid(context, ref, checklists),
@@ -159,6 +190,97 @@ class HomeScreen extends ConsumerWidget {
         builder: (context) => ChecklistDetailScreen(checklist: checklist),
       ),
     );
+  }
+
+  Widget _buildSelectionActions(BuildContext context, WidgetRef ref, {bool isCompact = false}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.delete_outline),
+          tooltip: 'Delete selected',
+          onPressed: () => _showDeleteConfirmationDialog(context, ref),
+          iconSize: isCompact ? 20 : 24,
+          constraints: BoxConstraints(
+            minWidth: isCompact ? 36 : 48,
+            minHeight: isCompact ? 36 : 48,
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Reset selected',
+          onPressed: () => _showResetConfirmationDialog(context, ref),
+          iconSize: isCompact ? 20 : 24,
+          constraints: BoxConstraints(
+            minWidth: isCompact ? 36 : 48,
+            minHeight: isCompact ? 36 : 48,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showDeleteConfirmationDialog(BuildContext context, WidgetRef ref) async {
+    final selectionState = ref.read(selectionProvider);
+    final selectedCount = selectionState.selectedCount;
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Checklists'),
+        content: Text('Are you sure you want to delete $selectedCount checklist${selectedCount > 1 ? 's' : ''}? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(checklistProvider.notifier).deleteMultipleChecklists(
+        selectionState.selectedChecklistIds.toList()
+      );
+      ref.read(selectionProvider.notifier).exitSelectionMode();
+    }
+  }
+
+  Future<void> _showResetConfirmationDialog(BuildContext context, WidgetRef ref) async {
+    final selectionState = ref.read(selectionProvider);
+    final selectedCount = selectionState.selectedCount;
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Checklists'),
+        content: Text('Are you sure you want to reset $selectedCount checklist${selectedCount > 1 ? 's' : ''}? All items will be marked as incomplete.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(checklistProvider.notifier).resetMultipleChecklists(
+        selectionState.selectedChecklistIds.toList()
+      );
+      ref.read(selectionProvider.notifier).exitSelectionMode();
+    }
   }
 }
 

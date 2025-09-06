@@ -61,6 +61,12 @@ class ChecklistNotifier extends StateNotifier<AsyncValue<List<Checklist>>> {
       return item;
     }).toList();
     
+    // Sort items: unchecked items first, then checked items
+    updatedItems.sort((a, b) {
+      if (a.isCompleted == b.isCompleted) return 0;
+      return a.isCompleted ? 1 : -1;
+    });
+    
     final updatedChecklist = checklist.copyWith(items: updatedItems);
     await updateChecklist(updatedChecklist);
   }
@@ -99,6 +105,35 @@ class ChecklistNotifier extends StateNotifier<AsyncValue<List<Checklist>>> {
     
     final updatedChecklist = checklist.copyWith(items: updatedItems);
     await updateChecklist(updatedChecklist);
+  }
+
+  Future<void> deleteMultipleChecklists(List<String> checklistIds) async {
+    try {
+      for (final id in checklistIds) {
+        await StorageService.deleteChecklist(id);
+      }
+      await _loadChecklists();
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<void> resetMultipleChecklists(List<String> checklistIds) async {
+    try {
+      for (final id in checklistIds) {
+        final checklist = StorageService.getChecklistById(id);
+        if (checklist != null) {
+          final resetItems = checklist.items.map((item) => 
+            item.copyWith(isCompleted: false)
+          ).toList();
+          final resetChecklist = checklist.copyWith(items: resetItems);
+          await StorageService.updateChecklist(resetChecklist);
+        }
+      }
+      await _loadChecklists();
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
   }
 }
 

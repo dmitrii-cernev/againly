@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/checklist.dart';
 import '../models/checklist_item.dart';
 import '../models/recurrence_type.dart';
 import '../providers/checklist_provider.dart';
+import '../providers/selection_provider.dart';
 import '../services/recurrence_service.dart';
 
 class ChecklistCard extends ConsumerWidget {
@@ -20,17 +22,45 @@ class ChecklistCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final selectionState = ref.watch(selectionProvider);
+    final isSelected = selectionState.isSelected(checklist.id);
     
     return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
+      elevation: isSelected ? 4 : null,
+      color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+      child: Stack(
+        children: [
+          GestureDetector(
+            onLongPress: () {
+              HapticFeedback.mediumImpact();
+              ref.read(selectionProvider.notifier).toggleSelection(checklist.id);
+            },
+            onSecondaryTap: () {
+              ref.read(selectionProvider.notifier).toggleSelection(checklist.id);
+            },
+            child: InkWell(
+              onTap: () {
+                if (selectionState.isSelectionMode) {
+                  ref.read(selectionProvider.notifier).toggleSelection(checklist.id);
+                } else {
+                  onTap();
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                decoration: isSelected ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: colorScheme.primary,
+                    width: 2,
+                  ),
+                ) : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
               Row(
                 children: [
                   Expanded(
@@ -111,10 +141,39 @@ class ChecklistCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-              ],
-            ],
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+          if (selectionState.isSelectionMode)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: colorScheme.outline,
+                    width: 1,
+                  ),
+                ),
+                child: Transform.scale(
+                  scale: 0.8,
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: (_) {
+                      ref.read(selectionProvider.notifier).toggleSelection(checklist.id);
+                    },
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
