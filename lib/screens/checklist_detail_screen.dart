@@ -23,6 +23,18 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   late TextEditingController _newItemController;
   RecurrenceType _selectedRecurrence = RecurrenceType.none;
   
+  // Helper method to get the current checklist from the provider
+  Checklist _getCurrentChecklist() {
+    return ref.read(checklistProvider).when(
+      data: (checklists) => checklists.firstWhere(
+        (c) => c.id == widget.checklist.id,
+        orElse: () => widget.checklist,
+      ),
+      loading: () => widget.checklist,
+      error: (_, __) => widget.checklist,
+    );
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -42,6 +54,19 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    
+    // Watch the provider to get the current state of checklists
+    final checklistState = ref.watch(checklistProvider);
+    
+    // Find the current checklist from the provider state
+    final currentChecklist = checklistState.when(
+      data: (checklists) => checklists.firstWhere(
+        (c) => c.id == widget.checklist.id,
+        orElse: () => widget.checklist, // Fallback to original if not found
+      ),
+      loading: () => widget.checklist,
+      error: (_, __) => widget.checklist,
+    );
     
     return Scaffold(
       appBar: AppBar(
@@ -143,7 +168,7 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
                 if (_selectedRecurrence != RecurrenceType.none) ...[
                   const SizedBox(height: 8),
                   Text(
-                    RecurrenceService.getNextResetText(widget.checklist),
+                    RecurrenceService.getNextResetText(currentChecklist),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -152,9 +177,9 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
                 
                 const SizedBox(height: 16),
                 
-                if (widget.checklist.items.isNotEmpty)
+                if (currentChecklist.items.isNotEmpty)
                   Text(
-                    'Progress: ${widget.checklist.completedItemsCount}/${widget.checklist.totalItemsCount} completed',
+                    'Progress: ${currentChecklist.completedItemsCount}/${currentChecklist.totalItemsCount} completed',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w500,
@@ -165,13 +190,13 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
           ),
           
           Expanded(
-            child: widget.checklist.items.isEmpty
+            child: currentChecklist.items.isEmpty
                 ? _buildEmptyState(context)
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: widget.checklist.items.length,
+                    itemCount: currentChecklist.items.length,
                     itemBuilder: (context, index) {
-                      final item = widget.checklist.items[index];
+                      final item = currentChecklist.items[index];
                       return ChecklistItemTile(
                         item: item,
                         checklistId: widget.checklist.id,
@@ -271,14 +296,16 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   }
   
   void _updateTitle(String title) {
-    if (title.trim().isNotEmpty && title != widget.checklist.title) {
-      final updatedChecklist = widget.checklist.copyWith(title: title.trim());
+    final currentChecklist = _getCurrentChecklist();
+    if (title.trim().isNotEmpty && title != currentChecklist.title) {
+      final updatedChecklist = currentChecklist.copyWith(title: title.trim());
       ref.read(checklistProvider.notifier).updateChecklist(updatedChecklist);
     }
   }
   
   void _updateRecurrence(RecurrenceType recurrence) {
-    final updatedChecklist = widget.checklist.copyWith(
+    final currentChecklist = _getCurrentChecklist();
+    final updatedChecklist = currentChecklist.copyWith(
       recurrence: recurrence,
       lastReset: recurrence == RecurrenceType.none ? null : DateTime.now(),
     );
@@ -286,7 +313,8 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   }
   
   void _resetChecklist() {
-    final resetChecklist = widget.checklist.resetItems();
+    final currentChecklist = _getCurrentChecklist();
+    final resetChecklist = currentChecklist.resetItems();
     ref.read(checklistProvider.notifier).updateChecklist(resetChecklist);
     
     ScaffoldMessenger.of(context).showSnackBar(
@@ -298,11 +326,12 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   }
   
   void _showDeleteDialog() {
+    final currentChecklist = _getCurrentChecklist();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Checklist'),
-        content: Text('Are you sure you want to delete "${widget.checklist.title}"?'),
+        content: Text('Are you sure you want to delete "${currentChecklist.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
