@@ -11,6 +11,7 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         elevation: 0,
         centerTitle: true,
+        toolbarHeight: 48,
       ),
       cardTheme: const CardThemeData(
         elevation: 2,
@@ -34,6 +35,7 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         elevation: 0,
         centerTitle: true,
+        toolbarHeight: 48,
       ),
       cardTheme: const CardThemeData(
         elevation: 2,

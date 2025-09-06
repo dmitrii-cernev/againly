@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../models/checklist.dart';
 import '../providers/checklist_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/checklist_card.dart';
 import 'create_checklist_screen.dart';
 import 'checklist_detail_screen.dart';
@@ -13,18 +14,23 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final checklistState = ref.watch(checklistProvider);
+    final themeNotifier = ref.read(themeProvider.notifier);
 
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('Againly'),
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.refresh),
-      //       onPressed: () =>
-      //           ref.read(checklistProvider.notifier).refreshChecklists(),
-      //     ),
-      //   ],
-      // ),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: Icon(themeNotifier.currentThemeIcon),
+            tooltip: themeNotifier.currentThemeTooltip,
+            onPressed: () => themeNotifier.toggleTheme(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () =>
+                ref.read(checklistProvider.notifier).refreshChecklists(),
+          ),
+        ],
+      ),
       body: checklistState.when(
         data: (checklists) => _buildChecklistGrid(context, ref, checklists),
         loading: () => const Center(child: CircularProgressIndicator()),
