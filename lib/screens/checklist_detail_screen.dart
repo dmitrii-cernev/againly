@@ -121,12 +121,9 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
                 TextField(
                   controller: _titleController,
                   style: theme.textTheme.headlineSmall,
-                  decoration: InputDecoration(
-                    hintText: currentChecklist.hasTitle ? 'Checklist title' : 'Title (optional) • ${currentChecklist.displayTitle}',
+                  decoration: const InputDecoration(
+                    hintText: 'Title',
                     border: InputBorder.none,
-                    hintStyle: currentChecklist.hasTitle 
-                      ? null 
-                      : TextStyle(fontStyle: FontStyle.italic, color: colorScheme.onSurfaceVariant),
                   ),
                   onChanged: (value) => _updateTitle(value),
                 ),
@@ -271,7 +268,7 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
               focusNode: _newItemFocusNode,
               decoration: const InputDecoration(
                 hintText: 'Add new item...',
-                border: OutlineInputBorder(),
+                border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,

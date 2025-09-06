@@ -53,8 +53,8 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
               controller: _titleController,
               style: theme.textTheme.headlineSmall,
               decoration: const InputDecoration(
-                hintText: 'Checklist title (optional)',
-                border: OutlineInputBorder(),
+                hintText: 'Title',
+                border: InputBorder.none,
               ),
               onChanged: (value) => setState(() {}),
             ),
@@ -129,7 +129,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
                     autofocus: true,
                     decoration: const InputDecoration(
                       hintText: 'Add an item...',
-                      border: OutlineInputBorder(),
+                      border: InputBorder.none,
                     ),
                     onSubmitted: (value) => _addItem(),
                   ),
