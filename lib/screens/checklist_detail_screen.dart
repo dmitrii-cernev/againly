@@ -21,6 +21,7 @@ class ChecklistDetailScreen extends ConsumerStatefulWidget {
 class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   late TextEditingController _titleController;
   late TextEditingController _newItemController;
+  final FocusNode _newItemFocusNode = FocusNode();
   RecurrenceType _selectedRecurrence = RecurrenceType.none;
   
   // Helper method to get the current checklist from the provider
@@ -47,6 +48,7 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   void dispose() {
     _titleController.dispose();
     _newItemController.dispose();
+    _newItemFocusNode.dispose();
     super.dispose();
   }
   
@@ -266,6 +268,7 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
           Expanded(
             child: TextField(
               controller: _newItemController,
+              focusNode: _newItemFocusNode,
               decoration: const InputDecoration(
                 hintText: 'Add new item...',
                 border: OutlineInputBorder(),
@@ -295,6 +298,8 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
         text,
       );
       _newItemController.clear();
+      // Keep focus on the input field after adding item
+      _newItemFocusNode.requestFocus();
     }
   }
   
