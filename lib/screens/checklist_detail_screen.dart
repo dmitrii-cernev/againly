@@ -119,9 +119,12 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
                 TextField(
                   controller: _titleController,
                   style: theme.textTheme.headlineSmall,
-                  decoration: const InputDecoration(
-                    hintText: 'Checklist title',
+                  decoration: InputDecoration(
+                    hintText: currentChecklist.hasTitle ? 'Checklist title' : 'Title (optional) • ${currentChecklist.displayTitle}',
                     border: InputBorder.none,
+                    hintStyle: currentChecklist.hasTitle 
+                      ? null 
+                      : TextStyle(fontStyle: FontStyle.italic, color: colorScheme.onSurfaceVariant),
                   ),
                   onChanged: (value) => _updateTitle(value),
                 ),
@@ -297,8 +300,11 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   
   void _updateTitle(String title) {
     final currentChecklist = _getCurrentChecklist();
-    if (title.trim().isNotEmpty && title != currentChecklist.title) {
-      final updatedChecklist = currentChecklist.copyWith(title: title.trim());
+    final trimmedTitle = title.trim();
+    
+    // Update if the trimmed title is different from current title
+    if (trimmedTitle != currentChecklist.title) {
+      final updatedChecklist = currentChecklist.copyWith(title: trimmedTitle);
       ref.read(checklistProvider.notifier).updateChecklist(updatedChecklist);
     }
   }
@@ -331,7 +337,7 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Checklist'),
-        content: Text('Are you sure you want to delete "${currentChecklist.title}"?'),
+        content: Text('Are you sure you want to delete "${currentChecklist.displayTitle}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

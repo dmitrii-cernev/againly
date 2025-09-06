@@ -9,22 +9,22 @@ import 'checklist_detail_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
-  
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final checklistState = ref.watch(checklistProvider);
-    
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Againly'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(checklistProvider.notifier).refreshChecklists(),
-          ),
-        ],
-      ),
-      
+      // appBar: AppBar(
+      //   title: const Text('Againly'),
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.refresh),
+      //       onPressed: () =>
+      //           ref.read(checklistProvider.notifier).refreshChecklists(),
+      //     ),
+      //   ],
+      // ),
       body: checklistState.when(
         data: (checklists) => _buildChecklistGrid(context, ref, checklists),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -50,26 +50,31 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.read(checklistProvider.notifier).refreshChecklists(),
+                onPressed: () =>
+                    ref.read(checklistProvider.notifier).refreshChecklists(),
                 child: const Text('Try Again'),
               ),
             ],
           ),
         ),
       ),
-      
+
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToCreateChecklist(context),
         child: const Icon(Icons.add),
       ),
     );
   }
-  
-  Widget _buildChecklistGrid(BuildContext context, WidgetRef ref, List<Checklist> checklists) {
+
+  Widget _buildChecklistGrid(
+    BuildContext context,
+    WidgetRef ref,
+    List<Checklist> checklists,
+  ) {
     if (checklists.isEmpty) {
       return _buildEmptyState(context);
     }
-    
+
     return RefreshIndicator(
       onRefresh: () => ref.read(checklistProvider.notifier).refreshChecklists(),
       child: Padding(
@@ -90,21 +95,17 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
-  
+
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.checklist,
-              size: 72,
-              color: theme.colorScheme.outline,
-            ),
+            Icon(Icons.checklist, size: 72, color: theme.colorScheme.outline),
             const SizedBox(height: 24),
             Text(
               'No checklists yet',
@@ -131,7 +132,7 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
-  
+
   int _getCrossAxisCount(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     if (width > 1200) return 4;
@@ -139,15 +140,13 @@ class HomeScreen extends ConsumerWidget {
     if (width > 500) return 2;
     return 1;
   }
-  
+
   void _navigateToCreateChecklist(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const CreateChecklistScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const CreateChecklistScreen()),
     );
   }
-  
+
   void _navigateToChecklistDetail(BuildContext context, Checklist checklist) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -156,3 +155,4 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
+

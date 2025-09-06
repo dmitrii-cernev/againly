@@ -35,9 +35,13 @@ class ChecklistCard extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      checklist.title,
+                      checklist.displayTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
+                        fontStyle: checklist.hasTitle ? FontStyle.normal : FontStyle.italic,
+                        color: checklist.hasTitle 
+                          ? theme.textTheme.titleMedium?.color
+                          : colorScheme.onSurfaceVariant,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

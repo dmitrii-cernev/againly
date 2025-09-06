@@ -27,7 +27,7 @@ class Checklist {
   
   Checklist({
     String? id,
-    required this.title,
+    this.title = '',
     List<ChecklistItem>? items,
     this.recurrence = RecurrenceType.none,
     this.lastReset,
@@ -62,6 +62,20 @@ class Checklist {
   }
   
   bool get isCompleted => totalItemsCount > 0 && completedItemsCount == totalItemsCount;
+  
+  bool get hasTitle => title.trim().isNotEmpty;
+  
+  String get displayTitle {
+    if (hasTitle) return title;
+    
+    if (items.isEmpty) {
+      return 'Empty checklist';
+    } else if (items.length == 1) {
+      return items.first.text;
+    } else {
+      return '${items.first.text} +${items.length - 1} more';
+    }
+  }
   
   bool get needsReset {
     if (recurrence == RecurrenceType.none || lastReset == null) return false;

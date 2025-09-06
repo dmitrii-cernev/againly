@@ -7,9 +7,10 @@ import '../providers/checklist_provider.dart';
 
 class CreateChecklistScreen extends ConsumerStatefulWidget {
   const CreateChecklistScreen({super.key});
-  
+
   @override
-  ConsumerState<CreateChecklistScreen> createState() => _CreateChecklistScreenState();
+  ConsumerState<CreateChecklistScreen> createState() =>
+      _CreateChecklistScreenState();
 }
 
 class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
@@ -17,19 +18,19 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
   final TextEditingController _itemController = TextEditingController();
   final List<String> _items = [];
   RecurrenceType _selectedRecurrence = RecurrenceType.none;
-  
+
   @override
   void dispose() {
     _titleController.dispose();
     _itemController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Checklist'),
@@ -40,7 +41,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
           ),
         ],
       ),
-      
+
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -50,21 +51,17 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
               controller: _titleController,
               style: theme.textTheme.headlineSmall,
               decoration: const InputDecoration(
-                hintText: 'Checklist title',
+                hintText: 'Checklist title (optional)',
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) => setState(() {}),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             Row(
               children: [
-                Icon(
-                  Icons.refresh,
-                  size: 16,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.refresh, size: 16, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Recurrence:',
@@ -93,7 +90,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
                 ),
               ],
             ),
-            
+
             if (_selectedRecurrence != RecurrenceType.none) ...[
               const SizedBox(height: 8),
               Text(
@@ -103,16 +100,12 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
                 ),
               ),
             ],
-            
+
             const SizedBox(height: 24),
-            
+
             Row(
               children: [
-                Icon(
-                  Icons.checklist,
-                  size: 16,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.checklist, size: 16, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Items (optional):',
@@ -122,9 +115,9 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             Row(
               children: [
                 Expanded(
@@ -144,9 +137,9 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             Expanded(
               child: _items.isEmpty
                   ? _buildEmptyItemsState(context)
@@ -172,19 +165,15 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
       ),
     );
   }
-  
+
   Widget _buildEmptyItemsState(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.playlist_add,
-            size: 48,
-            color: theme.colorScheme.outline,
-          ),
+          Icon(Icons.playlist_add, size: 48, color: theme.colorScheme.outline),
           const SizedBox(height: 16),
           Text(
             'No items added',
@@ -194,7 +183,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'You can create an empty checklist and add items later',
+            'Add items or a title to create your checklist',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -204,7 +193,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
       ),
     );
   }
-  
+
   void _addItem() {
     final text = _itemController.text.trim();
     if (text.isNotEmpty) {
@@ -214,17 +203,20 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
       });
     }
   }
-  
+
   void _removeItem(int index) {
     setState(() {
       _items.removeAt(index);
     });
   }
-  
+
   bool _canCreate() {
-    return _titleController.text.trim().isNotEmpty;
+    // Allow creating checklists without titles, but require at least one item if no title
+    final hasTitle = _titleController.text.trim().isNotEmpty;
+    final hasItems = _items.isNotEmpty;
+    return hasTitle || hasItems;
   }
-  
+
   String _getRecurrenceDescription(RecurrenceType type) {
     switch (type) {
       case RecurrenceType.none:
@@ -237,22 +229,25 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
         return 'This checklist will reset every month (30 days)';
     }
   }
-  
+
   void _createChecklist() {
     if (!_canCreate()) return;
-    
+
     final checklistItems = _items
         .map((text) => ChecklistItem(text: text))
         .toList();
-    
+
     final checklist = Checklist(
-      title: _titleController.text.trim(),
+      title: _titleController.text.trim(), // Can be empty now
       items: checklistItems,
       recurrence: _selectedRecurrence,
-      lastReset: _selectedRecurrence != RecurrenceType.none ? DateTime.now() : null,
+      lastReset: _selectedRecurrence != RecurrenceType.none
+          ? DateTime.now()
+          : null,
     );
-    
+
     ref.read(checklistProvider.notifier).createChecklist(checklist);
     Navigator.of(context).pop();
   }
 }
+
