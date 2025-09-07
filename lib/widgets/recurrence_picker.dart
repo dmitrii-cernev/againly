@@ -123,9 +123,11 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
   }
 
   Widget _buildTimeSelector() {
-    if (_selectedUnit == RecurrenceUnit.none || !_selectedUnit.allowsFixedTime) {
+    if (_selectedUnit == RecurrenceUnit.none) {
       return const SizedBox.shrink();
     }
+
+    final isTimeSelectionEnabled = _selectedUnit.allowsFixedTime;
 
     return Card(
       child: Padding(
@@ -139,12 +141,12 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
             ),
             const SizedBox(height: 8),
             InkWell(
-              onTap: () {
+              onTap: isTimeSelectionEnabled ? () {
                 setState(() {
                   _resetTime = null;
                 });
                 _updateConfig();
-              },
+              } : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
@@ -152,14 +154,14 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
                     Radio<bool>(
                       value: false,
                       groupValue: _resetTime != null,
-                      onChanged: (bool? value) {
+                      onChanged: isTimeSelectionEnabled ? (bool? value) {
                         if (value == false) {
                           setState(() {
                             _resetTime = null;
                           });
                           _updateConfig();
                         }
-                      },
+                      } : null,
                     ),
                     const SizedBox(width: 8),
                     const Expanded(
@@ -179,11 +181,11 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
               ),
             ),
             InkWell(
-              onTap: () {
+              onTap: isTimeSelectionEnabled ? () {
                 if (_resetTime == null) {
                   _showTimePicker();
                 }
-              },
+              } : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
@@ -191,23 +193,33 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
                     Radio<bool>(
                       value: true,
                       groupValue: _resetTime != null,
-                      onChanged: (bool? value) {
+                      onChanged: isTimeSelectionEnabled ? (bool? value) {
                         if (value == true) {
                           _showTimePicker();
                         }
-                      },
+                      } : null,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('At specific time'),
                           Text(
-                            _resetTime != null 
-                                ? 'Resets daily at ${_resetTime!.format(context)}'
-                                : 'Choose a time for automatic reset',
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            'At specific time',
+                            style: TextStyle(
+                              color: isTimeSelectionEnabled ? null : Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            isTimeSelectionEnabled
+                                ? (_resetTime != null 
+                                    ? 'Resets daily at ${_resetTime!.format(context)}'
+                                    : 'Choose a time for automatic reset')
+                                : 'Only available for daily, weekly, or monthly recurrence',
+                            style: TextStyle(
+                              fontSize: 12, 
+                              color: isTimeSelectionEnabled ? Colors.grey : Colors.grey.shade600,
+                            ),
                           ),
                         ],
                       ),
@@ -216,7 +228,7 @@ class _RecurrencePickerState extends State<RecurrencePicker> {
                 ),
               ),
             ),
-            if (_resetTime != null) ...[
+            if (_resetTime != null && isTimeSelectionEnabled) ...[
               const SizedBox(height: 8),
               Center(
                 child: OutlinedButton.icon(

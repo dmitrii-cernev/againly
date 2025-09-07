@@ -6,7 +6,8 @@ import '../models/checklist_item.dart';
 import '../models/recurrence_config.dart';
 import '../providers/checklist_provider.dart';
 import '../widgets/checklist_item_tile.dart';
-import '../widgets/recurrence_picker.dart';
+import '../widgets/recurrence_status_display.dart';
+import '../widgets/recurrence_bottom_sheet.dart';
 
 class ChecklistEditorScreen extends ConsumerStatefulWidget {
   final Checklist? checklist;
@@ -188,17 +189,10 @@ class _ChecklistEditorScreenState extends ConsumerState<ChecklistEditorScreen> {
                               const SizedBox(height: 16),
                             ],
                             
-                            // Recurrence picker
-                            RecurrencePicker(
-                              initialConfig: _selectedRecurrence,
-                              onChanged: (config) {
-                                setState(() {
-                                  _selectedRecurrence = config;
-                                });
-                                if (!isCreateMode) {
-                                  _updateRecurrence(config);
-                                }
-                              },
+                            // Recurrence status display
+                            RecurrenceStatusDisplay(
+                              config: _selectedRecurrence,
+                              onTap: () => _showRecurrenceBottomSheet(),
                             ),
                             
                             const SizedBox(height: 16),
@@ -473,6 +467,22 @@ class _ChecklistEditorScreenState extends ConsumerState<ChecklistEditorScreen> {
       lastReset: recurrence.isNone ? null : DateTime.now(),
     );
     ref.read(checklistProvider.notifier).updateChecklist(updatedChecklist);
+  }
+
+  void _showRecurrenceBottomSheet() async {
+    final result = await RecurrenceBottomSheet.show(
+      context: context,
+      initialConfig: _selectedRecurrence,
+    );
+    
+    if (result != null) {
+      setState(() {
+        _selectedRecurrence = result;
+      });
+      if (!isCreateMode) {
+        _updateRecurrence(result);
+      }
+    }
   }
   
   void _resetChecklist() {
