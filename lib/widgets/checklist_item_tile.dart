@@ -72,25 +72,12 @@ class _ChecklistItemTileState extends ConsumerState<ChecklistItemTile> {
                 ),
                 onSelected: (value) {
                   switch (value) {
-                    case 'edit':
-                      _startEditing();
-                      break;
                     case 'delete':
                       _deleteItem();
                       break;
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit, size: 16),
-                        SizedBox(width: 8),
-                        Text('Edit'),
-                      ],
-                    ),
-                  ),
                   const PopupMenuItem(
                     value: 'delete',
                     child: Row(
@@ -109,7 +96,7 @@ class _ChecklistItemTileState extends ConsumerState<ChecklistItemTile> {
   
   Widget _buildDisplayText(ThemeData theme) {
     return GestureDetector(
-      onDoubleTap: _startEditing,
+      onTap: _startEditing,
       child: Text(
         widget.item.text,
         style: theme.textTheme.bodyMedium?.copyWith(
