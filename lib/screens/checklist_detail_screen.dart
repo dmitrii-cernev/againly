@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/checklist.dart';
 import '../models/recurrence_type.dart';
@@ -22,6 +23,7 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   late TextEditingController _titleController;
   late TextEditingController _newItemController;
   final FocusNode _newItemFocusNode = FocusNode();
+  final FocusNode _keyboardFocusNode = FocusNode();
   RecurrenceType _selectedRecurrence = RecurrenceType.none;
   
   // Helper method to get the current checklist from the provider
@@ -49,6 +51,7 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
     _titleController.dispose();
     _newItemController.dispose();
     _newItemFocusNode.dispose();
+    _keyboardFocusNode.dispose();
     super.dispose();
   }
   
@@ -70,8 +73,19 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
       error: (_, __) => widget.checklist,
     );
     
-    return Scaffold(
-      appBar: AppBar(
+    return KeyboardListener(
+      focusNode: _keyboardFocusNode,
+      autofocus: true,
+      onKeyEvent: (event) {
+        if (event is KeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.escape ||
+              event.logicalKey == LogicalKeyboardKey.backspace) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
         title: const Text('Checklist'),
         actions: [
           PopupMenuButton<String>(
@@ -219,6 +233,7 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
           _buildAddItemField(context),
         ],
       ),
+    ),
     );
   }
   
