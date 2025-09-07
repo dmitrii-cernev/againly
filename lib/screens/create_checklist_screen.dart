@@ -45,7 +45,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
           title: const Text('New Checklist'),
         ),
 
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,10 +112,15 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
 
             const SizedBox(height: 16),
 
-            Expanded(
-              child: _items.isEmpty
-                  ? _buildEmptyItemsState(context)
-                  : ReorderableListView.builder(
+            _items.isEmpty
+                ? _buildEmptyItemsState(context)
+                : ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: 200,
+                      maxHeight: MediaQuery.of(context).size.height * 0.4,
+                    ),
+                    child: ReorderableListView.builder(
+                      shrinkWrap: true,
                       itemCount: _items.length,
                       onReorder: (oldIndex, newIndex) {
                         setState(() {
@@ -144,7 +149,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
                         );
                       },
                     ),
-            ),
+                  ),
           ],
         ),
       ),
@@ -155,7 +160,9 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
   Widget _buildEmptyItemsState(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Center(
+    return Container(
+      height: 200,
+      alignment: Alignment.center,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

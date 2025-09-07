@@ -127,87 +127,102 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
       
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: _titleController,
-                  style: theme.textTheme.headlineSmall,
-                  decoration: const InputDecoration(
-                    hintText: 'Title',
-                    border: InputBorder.none,
-                  ),
-                  onChanged: (value) => _updateTitle(value),
-                ),
-                
-                const SizedBox(height: 16),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () => _showResetDialog(),
-                      icon: const Icon(Icons.restart_alt, size: 16),
-                      label: const Text('Reset'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        minimumSize: Size.zero,
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 16),
-                
-                RecurrencePicker(
-                  initialConfig: _selectedRecurrence,
-                  onChanged: (config) {
-                    setState(() {
-                      _selectedRecurrence = config;
-                    });
-                    _updateRecurrence(config);
-                  },
-                ),
-                
-                const SizedBox(height: 16),
-                
-                if (currentChecklist.items.isNotEmpty)
-                  Text(
-                    'Progress: ${currentChecklist.completedItemsCount}/${currentChecklist.totalItemsCount} completed',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          
           Expanded(
-            child: currentChecklist.items.isEmpty
-                ? _buildEmptyState(context)
-                : ReorderableListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: currentChecklist.items.length,
-                    onReorder: (oldIndex, newIndex) {
-                      ref.read(checklistProvider.notifier).reorderChecklistItems(
-                        widget.checklist.id,
-                        oldIndex,
-                        newIndex,
-                      );
-                    },
-                    itemBuilder: (context, index) {
-                      final item = currentChecklist.items[index];
-                      return ChecklistItemTile(
-                        key: ValueKey(item.id),
-                        item: item,
-                        checklistId: widget.checklist.id,
-                        showDragHandle: true,
-                      );
-                    },
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          controller: _titleController,
+                          style: theme.textTheme.headlineSmall,
+                          decoration: const InputDecoration(
+                            hintText: 'Title',
+                            border: InputBorder.none,
+                          ),
+                          onChanged: (value) => _updateTitle(value),
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () => _showResetDialog(),
+                              icon: const Icon(Icons.restart_alt, size: 16),
+                              label: const Text('Reset'),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                minimumSize: Size.zero,
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        RecurrencePicker(
+                          initialConfig: _selectedRecurrence,
+                          onChanged: (config) {
+                            setState(() {
+                              _selectedRecurrence = config;
+                            });
+                            _updateRecurrence(config);
+                          },
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        if (currentChecklist.items.isNotEmpty)
+                          Text(
+                            'Progress: ${currentChecklist.completedItemsCount}/${currentChecklist.totalItemsCount} completed',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        
+                        const SizedBox(height: 16),
+                      ],
+                    ),
                   ),
+                  
+                  currentChecklist.items.isEmpty
+                      ? _buildEmptyState(context)
+                      : ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: 200,
+                            maxHeight: MediaQuery.of(context).size.height * 0.4,
+                          ),
+                          child: ReorderableListView.builder(
+                            shrinkWrap: true,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: currentChecklist.items.length,
+                            onReorder: (oldIndex, newIndex) {
+                              ref.read(checklistProvider.notifier).reorderChecklistItems(
+                                widget.checklist.id,
+                                oldIndex,
+                                newIndex,
+                              );
+                            },
+                            itemBuilder: (context, index) {
+                              final item = currentChecklist.items[index];
+                              return ChecklistItemTile(
+                                key: ValueKey(item.id),
+                                item: item,
+                                checklistId: widget.checklist.id,
+                                showDragHandle: true,
+                              );
+                            },
+                          ),
+                        ),
+                ],
+              ),
+            ),
           ),
           
           _buildAddItemField(context),
@@ -220,7 +235,9 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
     
-    return Center(
+    return Container(
+      height: 200,
+      alignment: Alignment.center,
       child: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
