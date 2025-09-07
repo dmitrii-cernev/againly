@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Flutter (pin a version for reproducibility; adjust if you want latest)
-ARG FLUTTER_VERSION=3.22.0
+ARG FLUTTER_VERSION=3.35.3
 RUN git clone https://github.com/flutter/flutter.git /flutter \
   && cd /flutter && git checkout ${FLUTTER_VERSION}
 
