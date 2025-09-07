@@ -160,7 +160,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
                       },
                       itemBuilder: (context, index) {
                         return Card(
-                          key: ValueKey(_items[index]),
+                          key: ValueKey('item_$index'),
                           margin: const EdgeInsets.symmetric(vertical: 2),
                           child: ListTile(
                             leading: ReorderableDragStartListener(
