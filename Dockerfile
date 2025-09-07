@@ -30,9 +30,8 @@ RUN flutter pub get
 # Copy the entire project
 COPY . .
 
-# Generate Hive adapters (with error handling)
-RUN flutter packages pub run build_runner build --delete-conflicting-outputs || \
-  (echo "Build runner failed, continuing without code generation..." && true)
+# Generate Hive adapters (non-interactive)
+RUN dart run build_runner build --delete-conflicting-outputs
 
 # Build the web app for production
 RUN flutter build web --release
