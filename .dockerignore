@@ -1,0 +1,63 @@
+# Build artifacts
+build/
+.dart_tool/
+.packages
+pubspec.lock
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker files (avoid recursive copying)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation and README files
+*.md
+README*
+
+# Platform specific build directories
+android/
+ios/
+linux/
+macos/
+windows/
+web/build/
+
+# Test files
+test/
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Log files
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Other Flutter/Dart specific
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
