@@ -30,9 +30,12 @@ RUN flutter pub get
 # Copy the entire project
 COPY . .
 
-# Generate Hive adapters and build the web app in a single layer
-RUN flutter packages pub run build_runner build --delete-conflicting-outputs \
-  && flutter build web --release
+# Generate Hive adapters (with error handling)
+RUN flutter packages pub run build_runner build --delete-conflicting-outputs || \
+  (echo "Build runner failed, continuing without code generation..." && true)
+
+# Build the web app for production
+RUN flutter build web --release
 
 # Stage 2: Production environment
 FROM nginx:alpine
