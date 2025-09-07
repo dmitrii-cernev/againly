@@ -178,6 +178,16 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
                         }).toList(),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () => _showResetDialog(),
+                      icon: const Icon(Icons.restart_alt, size: 16),
+                      label: const Text('Reset'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        minimumSize: Size.zero,
+                      ),
+                    ),
                   ],
                 ),
                 
@@ -357,6 +367,30 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
     );
   }
   
+  void _showResetDialog() {
+    final currentChecklist = _getCurrentChecklist();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Checklist'),
+        content: Text('Are you sure you want to reset all items in "${currentChecklist.displayTitle}"? This will uncheck all completed items.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              _resetChecklist();
+            },
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showDeleteDialog() {
     final currentChecklist = _getCurrentChecklist();
     showDialog(
