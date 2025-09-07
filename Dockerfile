@@ -1,52 +1,50 @@
-# Multi-stage Dockerfile for Flutter Web App
+# ---- Stage 1: Build (Debian-based to avoid musl issues) ----
+FROM debian:bookworm-slim AS build-env
 
-# Stage 1: Build environment
-FROM alpine:3.19 AS build-env
+# Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  ca-certificates curl git unzip xz-utils zip bash openssl \
+  && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies and Flutter SDK in a single layer
-RUN apk add --no-cache \
-  curl \
-  git \
-  unzip \
-  xz \
-  zip \
-  bash \
-  gcompat \
-  && git clone https://github.com/flutter/flutter.git /flutter
+# Install Flutter (pin a version for reproducibility; adjust if you want latest)
+ARG FLUTTER_VERSION=3.24.1
+RUN git clone https://github.com/flutter/flutter.git /flutter \
+  && cd /flutter && git checkout ${FLUTTER_VERSION}
 
 ENV PATH="/flutter/bin:/flutter/bin/cache/dart-sdk/bin:${PATH}"
 
-# Configure Flutter and run doctor in a single layer
+# Enable web + cache artifacts (helps in CI/Docker)
 RUN flutter config --enable-web \
+  && flutter precache --web \
   && flutter doctor -v
 
-# Set working directory
 WORKDIR /app
 
-# Copy pubspec files and get dependencies
+# Cache pub deps first (better build cache)
 COPY pubspec.* ./
 RUN flutter pub get
 
-# Copy the entire project
+# Copy the rest of your app
 COPY . .
 
-# Generate Hive adapters (non-interactive)
+# (Optional) codegen, if you use build_runner (you do)
 RUN dart run build_runner build --delete-conflicting-outputs
 
-# Build the web app for production
+# Build web release
 RUN flutter build web --release
 
-# Stage 2: Production environment
+# ---- Stage 2: Runtime (Nginx) ----
 FROM nginx:alpine
 
-# Copy custom nginx configuration
+# Add curl so your docker-compose healthcheck works
+RUN apk add --no-cache curl
+
+# Copy custom nginx config (make sure this file exists in repo root)
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy the built web app from the build stage
+# Copy built web assets
 COPY --from=build-env /app/build/web /usr/share/nginx/html
 
-# Expose port 80
 EXPOSE 80
-
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
+
