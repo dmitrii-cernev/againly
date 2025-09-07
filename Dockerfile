@@ -26,6 +26,8 @@ RUN flutter pub get
 
 # Copy the rest of your app
 COPY . .
+# Ensure the project is configured for web (adds web/ folder if missing)
+RUN flutter create . --platforms web
 
 # (Optional) codegen, if you use build_runner (you do)
 RUN dart run build_runner build --delete-conflicting-outputs
