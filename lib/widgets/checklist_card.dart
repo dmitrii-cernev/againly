@@ -10,11 +10,13 @@ import '../services/recurrence_service.dart';
 class ChecklistCard extends ConsumerWidget {
   final Checklist checklist;
   final VoidCallback onTap;
+  final Function(String)? onDelete;
   
   const ChecklistCard({
     super.key,
     required this.checklist,
     required this.onTap,
+    this.onDelete,
   });
   
   @override
@@ -24,7 +26,7 @@ class ChecklistCard extends ConsumerWidget {
     final selectionState = ref.watch(selectionProvider);
     final isSelected = selectionState.isSelected(checklist.id);
     
-    return Card(
+    final cardContent = Card(
       elevation: isSelected ? 4 : null,
       color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
       child: Stack(
@@ -172,6 +174,73 @@ class ChecklistCard extends ConsumerWidget {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+
+    // If selection mode is active or onDelete is null, return card without dismissible
+    if (selectionState.isSelectionMode || onDelete == null) {
+      return cardContent;
+    }
+
+    return Dismissible(
+      key: Key('checklist_${checklist.id}'),
+      direction: DismissDirection.horizontal,
+      onDismissed: (direction) {
+        onDelete!(checklist.id);
+      },
+      confirmDismiss: (direction) async {
+        HapticFeedback.mediumImpact();
+        return await _showDeleteConfirmation(context);
+      },
+      background: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.error,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+        child: Icon(
+          Icons.delete,
+          color: colorScheme.onError,
+          size: 28,
+        ),
+      ),
+      secondaryBackground: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.error,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: Icon(
+          Icons.delete,
+          color: colorScheme.onError,
+          size: 28,
+        ),
+      ),
+      child: cardContent,
+    );
+  }
+
+  Future<bool?> _showDeleteConfirmation(BuildContext context) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Checklist'),
+        content: Text('Are you sure you want to delete "${checklist.displayTitle}"? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );

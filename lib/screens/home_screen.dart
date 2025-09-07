@@ -126,6 +126,7 @@ class HomeScreen extends ConsumerWidget {
             return ChecklistCard(
               checklist: checklist,
               onTap: () => _navigateToChecklistDetail(context, checklist),
+              onDelete: (checklistId) => _handleSwipeDelete(context, ref, checklistId),
             );
           },
         ),
@@ -297,6 +298,36 @@ class HomeScreen extends ConsumerWidget {
       ThemeMode.light => 'Light theme',
       ThemeMode.dark => 'Dark theme',
     };
+  }
+
+  void _handleSwipeDelete(BuildContext context, WidgetRef ref, String checklistId) {
+    final checklistNotifier = ref.read(checklistProvider.notifier);
+    final checklists = ref.read(checklistProvider).value;
+    
+    if (checklists == null) return;
+    
+    final checklist = checklists.where((cl) => cl.id == checklistId).firstOrNull;
+    if (checklist == null) return;
+
+    // Store the checklist for undo functionality
+    final deletedChecklist = checklist;
+    
+    // Delete the checklist
+    checklistNotifier.deleteChecklist(checklistId);
+
+    // Show undo snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Deleted "${deletedChecklist.displayTitle}"'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            checklistNotifier.createChecklist(deletedChecklist);
+          },
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 }
 
