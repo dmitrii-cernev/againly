@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/checklist.dart';
-import '../models/recurrence_type.dart';
+import '../models/recurrence_config.dart';
 import '../providers/checklist_provider.dart';
 import '../widgets/checklist_item_tile.dart';
-import '../services/recurrence_service.dart';
+import '../widgets/recurrence_picker.dart';
 
 class ChecklistDetailScreen extends ConsumerStatefulWidget {
   final Checklist checklist;
@@ -24,7 +24,7 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
   late TextEditingController _newItemController;
   final FocusNode _newItemFocusNode = FocusNode();
   final FocusNode _keyboardFocusNode = FocusNode();
-  RecurrenceType _selectedRecurrence = RecurrenceType.none;
+  RecurrenceConfig _selectedRecurrence = const RecurrenceConfig();
   
   // Helper method to get the current checklist from the provider
   Checklist _getCurrentChecklist() {
@@ -145,40 +145,8 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
                 const SizedBox(height: 16),
                 
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Icon(
-                      Icons.refresh,
-                      size: 16,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Recurrence:',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButton<RecurrenceType>(
-                        value: _selectedRecurrence,
-                        onChanged: (RecurrenceType? newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              _selectedRecurrence = newValue;
-                            });
-                            _updateRecurrence(newValue);
-                          }
-                        },
-                        items: RecurrenceType.values.map((RecurrenceType type) {
-                          return DropdownMenuItem<RecurrenceType>(
-                            value: type,
-                            child: Text(type.displayName),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () => _showResetDialog(),
                       icon: const Icon(Icons.restart_alt, size: 16),
@@ -191,15 +159,17 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
                   ],
                 ),
                 
-                if (_selectedRecurrence != RecurrenceType.none) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    RecurrenceService.getNextResetText(currentChecklist),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+                const SizedBox(height: 16),
+                
+                RecurrencePicker(
+                  initialConfig: _selectedRecurrence,
+                  onChanged: (config) {
+                    setState(() {
+                      _selectedRecurrence = config;
+                    });
+                    _updateRecurrence(config);
+                  },
+                ),
                 
                 const SizedBox(height: 16),
                 
@@ -345,11 +315,11 @@ class _ChecklistDetailScreenState extends ConsumerState<ChecklistDetailScreen> {
     }
   }
   
-  void _updateRecurrence(RecurrenceType recurrence) {
+  void _updateRecurrence(RecurrenceConfig recurrence) {
     final currentChecklist = _getCurrentChecklist();
     final updatedChecklist = currentChecklist.copyWith(
       recurrence: recurrence,
-      lastReset: recurrence == RecurrenceType.none ? null : DateTime.now(),
+      lastReset: recurrence.isNone ? null : DateTime.now(),
     );
     ref.read(checklistProvider.notifier).updateChecklist(updatedChecklist);
   }

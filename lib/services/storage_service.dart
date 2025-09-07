@@ -1,7 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/checklist.dart';
 import '../models/checklist_item.dart';
-import '../models/recurrence_type.dart';
+import '../models/recurrence_config.dart';
 
 class StorageService {
   static const String _checklistBoxName = 'checklists';
@@ -13,7 +13,8 @@ class StorageService {
     
     Hive.registerAdapter(ChecklistAdapter());
     Hive.registerAdapter(ChecklistItemAdapter());
-    Hive.registerAdapter(RecurrenceTypeAdapter());
+    Hive.registerAdapter(RecurrenceConfigAdapter());
+    Hive.registerAdapter(RecurrenceUnitAdapter());
     
     _checklistBox = await Hive.openBox<Checklist>(_checklistBoxName);
   }

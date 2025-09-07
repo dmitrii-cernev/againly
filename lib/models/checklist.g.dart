@@ -20,16 +20,17 @@ class ChecklistAdapter extends TypeAdapter<Checklist> {
       id: fields[0] as String?,
       title: fields[1] as String,
       items: (fields[2] as List?)?.cast<ChecklistItem>(),
-      recurrence: fields[3] as RecurrenceType,
+      recurrence: fields[3] as RecurrenceConfig,
       lastReset: fields[4] as DateTime?,
       createdAt: fields[5] as DateTime?,
+      lastInteractionAt: fields[6] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Checklist obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +42,9 @@ class ChecklistAdapter extends TypeAdapter<Checklist> {
       ..writeByte(4)
       ..write(obj.lastReset)
       ..writeByte(5)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(6)
+      ..write(obj.lastInteractionAt);
   }
 
   @override

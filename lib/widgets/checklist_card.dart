@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/checklist.dart';
 import '../models/checklist_item.dart';
-import '../models/recurrence_type.dart';
 import '../providers/checklist_provider.dart';
 import '../providers/selection_provider.dart';
 import '../services/recurrence_service.dart';
@@ -119,7 +118,7 @@ class ChecklistCard extends ConsumerWidget {
                   ),
               ],
               
-              if (checklist.recurrence.displayName != 'None') ...[
+              if (!checklist.recurrence.isNone) ...[
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -131,7 +130,7 @@ class ChecklistCard extends ConsumerWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        '${checklist.recurrence.displayName} • ${RecurrenceService.getNextResetText(checklist)}',
+                        '${checklist.recurrence.displayText} • ${RecurrenceService.getNextResetText(checklist)}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.primary,
                         ),

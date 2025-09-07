@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/checklist.dart';
 import '../models/checklist_item.dart';
-import '../models/recurrence_type.dart';
+import '../models/recurrence_config.dart';
 import '../providers/checklist_provider.dart';
+import '../widgets/recurrence_picker.dart';
 
 class CreateChecklistScreen extends ConsumerStatefulWidget {
   const CreateChecklistScreen({super.key});
@@ -18,7 +19,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
   final TextEditingController _itemController = TextEditingController();
   final FocusNode _itemFocusNode = FocusNode();
   final List<String> _items = [];
-  RecurrenceType _selectedRecurrence = RecurrenceType.none;
+  RecurrenceConfig _selectedRecurrence = const RecurrenceConfig();
 
   @override
   void dispose() {
@@ -61,47 +62,14 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
 
             const SizedBox(height: 24),
 
-            Row(
-              children: [
-                Icon(Icons.refresh, size: 16, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'Recurrence:',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButton<RecurrenceType>(
-                    value: _selectedRecurrence,
-                    onChanged: (RecurrenceType? newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          _selectedRecurrence = newValue;
-                        });
-                      }
-                    },
-                    items: RecurrenceType.values.map((RecurrenceType type) {
-                      return DropdownMenuItem<RecurrenceType>(
-                        value: type,
-                        child: Text(type.displayName),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
+            RecurrencePicker(
+              initialConfig: _selectedRecurrence,
+              onChanged: (config) {
+                setState(() {
+                  _selectedRecurrence = config;
+                });
+              },
             ),
-
-            if (_selectedRecurrence != RecurrenceType.none) ...[
-              const SizedBox(height: 8),
-              Text(
-                _getRecurrenceDescription(_selectedRecurrence),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
 
             const SizedBox(height: 24),
 
@@ -237,18 +205,6 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
     return hasTitle || hasItems;
   }
 
-  String _getRecurrenceDescription(RecurrenceType type) {
-    switch (type) {
-      case RecurrenceType.none:
-        return '';
-      case RecurrenceType.daily:
-        return 'This checklist will reset every day';
-      case RecurrenceType.weekly:
-        return 'This checklist will reset every week';
-      case RecurrenceType.monthly:
-        return 'This checklist will reset every month (30 days)';
-    }
-  }
 
   void _createChecklist() {
     if (!_canCreate()) return;
@@ -261,7 +217,7 @@ class _CreateChecklistScreenState extends ConsumerState<CreateChecklistScreen> {
       title: _titleController.text.trim(), // Can be empty now
       items: checklistItems,
       recurrence: _selectedRecurrence,
-      lastReset: _selectedRecurrence != RecurrenceType.none
+      lastReset: !_selectedRecurrence.isNone
           ? DateTime.now()
           : null,
     );

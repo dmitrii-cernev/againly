@@ -1,7 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import 'checklist_item.dart';
-import 'recurrence_type.dart';
+import 'recurrence_config.dart';
 
 part 'checklist.g.dart';
 
@@ -17,7 +18,7 @@ class Checklist {
   final List<ChecklistItem> items;
   
   @HiveField(3)
-  final RecurrenceType recurrence;
+  final RecurrenceConfig recurrence;
   
   @HiveField(4)
   final DateTime? lastReset;
@@ -25,13 +26,17 @@ class Checklist {
   @HiveField(5)
   final DateTime createdAt;
   
+  @HiveField(6)
+  final DateTime? lastInteractionAt;
+  
   Checklist({
     String? id,
     this.title = '',
     List<ChecklistItem>? items,
-    this.recurrence = RecurrenceType.none,
+    this.recurrence = const RecurrenceConfig(),
     this.lastReset,
     DateTime? createdAt,
+    this.lastInteractionAt,
   }) : id = id ?? const Uuid().v4(),
        items = items ?? [],
        createdAt = createdAt ?? DateTime.now();
@@ -39,8 +44,9 @@ class Checklist {
   Checklist copyWith({
     String? title,
     List<ChecklistItem>? items,
-    RecurrenceType? recurrence,
+    RecurrenceConfig? recurrence,
     DateTime? lastReset,
+    DateTime? lastInteractionAt,
   }) {
     return Checklist(
       id: id,
@@ -49,6 +55,7 @@ class Checklist {
       recurrence: recurrence ?? this.recurrence,
       lastReset: lastReset ?? this.lastReset,
       createdAt: createdAt,
+      lastInteractionAt: lastInteractionAt ?? this.lastInteractionAt,
     );
   }
   
@@ -78,12 +85,41 @@ class Checklist {
   }
   
   bool get needsReset {
-    if (recurrence == RecurrenceType.none || lastReset == null) return false;
+    if (recurrence.isNone) return false;
     
-    final duration = recurrence.duration;
+    final duration = recurrence.intervalDuration;
     if (duration == null) return false;
     
-    return DateTime.now().isAfter(lastReset!.add(duration));
+    final now = DateTime.now();
+    
+    if (recurrence.isFixedMode) {
+      final resetTime = recurrence.resetTime;
+      if (resetTime == null) return false;
+      
+      final lastResetDate = lastReset ?? createdAt;
+      final nextResetDate = _getNextFixedResetDateTime(lastResetDate, resetTime, duration);
+      
+      return now.isAfter(nextResetDate);
+    } else {
+      final referenceTime = lastInteractionAt ?? lastReset ?? createdAt;
+      return now.isAfter(referenceTime.add(duration));
+    }
+  }
+  
+  DateTime _getNextFixedResetDateTime(DateTime lastReset, TimeOfDay resetTime, Duration interval) {
+    DateTime candidateReset = DateTime(
+      lastReset.year,
+      lastReset.month,
+      lastReset.day,
+      resetTime.hour,
+      resetTime.minute,
+    );
+    
+    while (candidateReset.isBefore(lastReset)) {
+      candidateReset = candidateReset.add(interval);
+    }
+    
+    return candidateReset;
   }
   
   Checklist resetItems() {
@@ -92,6 +128,13 @@ class Checklist {
       items: resetItems,
       lastReset: DateTime.now(),
     );
+  }
+  
+  Checklist recordInteraction() {
+    if (recurrence.isRelativeMode) {
+      return copyWith(lastInteractionAt: DateTime.now());
+    }
+    return this;
   }
   
   @override

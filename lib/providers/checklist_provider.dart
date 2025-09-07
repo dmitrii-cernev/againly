@@ -68,7 +68,11 @@ class ChecklistNotifier extends StateNotifier<AsyncValue<List<Checklist>>> {
     });
     
     final updatedChecklist = checklist.copyWith(items: updatedItems);
-    await updateChecklist(updatedChecklist);
+    
+    // Record interaction for relative mode recurrence
+    final checklistWithInteraction = updatedChecklist.recordInteraction();
+    
+    await updateChecklist(checklistWithInteraction);
   }
   
   Future<void> addItemToChecklist(String checklistId, String itemText) async {
