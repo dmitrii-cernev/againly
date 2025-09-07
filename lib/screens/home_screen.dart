@@ -6,8 +6,7 @@ import '../providers/checklist_provider.dart';
 import '../providers/selection_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/checklist_card.dart';
-import 'create_checklist_screen.dart';
-import 'checklist_detail_screen.dart';
+import 'checklist_editor_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -181,14 +180,14 @@ class HomeScreen extends ConsumerWidget {
 
   void _navigateToCreateChecklist(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const CreateChecklistScreen()),
+      MaterialPageRoute(builder: (context) => const ChecklistEditorScreen()),
     );
   }
 
   void _navigateToChecklistDetail(BuildContext context, Checklist checklist) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ChecklistDetailScreen(checklist: checklist),
+        builder: (context) => ChecklistEditorScreen(checklist: checklist),
       ),
     );
   }
