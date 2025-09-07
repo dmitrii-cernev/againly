@@ -26,9 +26,13 @@ class ChecklistCard extends ConsumerWidget {
     final selectionState = ref.watch(selectionProvider);
     final isSelected = selectionState.isSelected(checklist.id);
     
-    final cardContent = Card(
-      elevation: isSelected ? 4 : null,
-      color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+    final cardContent = Hero(
+      tag: 'checklist_${checklist.id}',
+      child: Material(
+        type: MaterialType.transparency,
+        child: Card(
+          elevation: isSelected ? 4 : null,
+          color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
       child: Stack(
         children: [
           GestureDetector(
@@ -175,6 +179,8 @@ class ChecklistCard extends ConsumerWidget {
               ),
             ),
         ],
+          ),
+        ),
       ),
     );
 

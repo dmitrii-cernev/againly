@@ -140,8 +140,11 @@ class _ChecklistEditorScreenState extends ConsumerState<ChecklistEditorScreen> {
             ],
           ),
           
-          body: Column(
-            children: [
+          body: Hero(
+            tag: isCreateMode ? 'create_checklist' : 'checklist_${widget.checklist!.id}',
+            child: Material(
+              child: Column(
+                children: [
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -239,7 +242,9 @@ class _ChecklistEditorScreenState extends ConsumerState<ChecklistEditorScreen> {
               
               // Add item field at bottom
               _buildAddItemField(context),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
