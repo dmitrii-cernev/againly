@@ -16,6 +16,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final checklistState = ref.watch(checklistProvider);
     final selectionState = ref.watch(selectionProvider);
+    final themeMode = ref.watch(themeProvider);
     final themeNotifier = ref.read(themeProvider.notifier);
 
     return Scaffold(
@@ -51,8 +52,8 @@ class HomeScreen extends ConsumerWidget {
               ]
             : [
                 IconButton(
-                  icon: Icon(themeNotifier.currentThemeIcon),
-                  tooltip: themeNotifier.currentThemeTooltip,
+                  icon: Icon(_getThemeIcon(themeMode)),
+                  tooltip: _getThemeTooltip(themeMode),
                   onPressed: () => themeNotifier.toggleTheme(),
                 ),
                 IconButton(
@@ -281,6 +282,22 @@ class HomeScreen extends ConsumerWidget {
       );
       ref.read(selectionProvider.notifier).exitSelectionMode();
     }
+  }
+
+  IconData _getThemeIcon(ThemeMode themeMode) {
+    return switch (themeMode) {
+      ThemeMode.system => Icons.brightness_auto,
+      ThemeMode.light => Icons.light_mode,
+      ThemeMode.dark => Icons.dark_mode,
+    };
+  }
+
+  String _getThemeTooltip(ThemeMode themeMode) {
+    return switch (themeMode) {
+      ThemeMode.system => 'System theme',
+      ThemeMode.light => 'Light theme',
+      ThemeMode.dark => 'Dark theme',
+    };
   }
 }
 
